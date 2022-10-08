@@ -14,10 +14,10 @@
 
 ```
 pod 'TTTagView
-', :git => 'https://github.com/xuzeyu/TTTagView
-.git'
+', :git => 'https://github.com/xuzeyu/TTTagView.git'
 ```
 
 ## 版本新增
 0.1.2 新增tagBorderWidth和tagSelectedBorderWidth属性设置标签外框，新增disableUpdateTagViewLayoutAnimate用于禁止刷新动画,增加contentEdgeInsets属性设置内边距，新增tagClick和tagLongPress的block回调
+
 0.1.1 原内容
