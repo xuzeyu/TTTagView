@@ -27,13 +27,18 @@
     [super setSelected:selected];
     if (selected) {
         [self setBackgroundColor:self.selectedBackgroundColor];
-        [self.layer setBorderColor:self.selectedBorderColor.CGColor];
+        if (self.selectedBorderColor) {
+            [self.layer setBorderColor:self.selectedBorderColor.CGColor];
+        }
+        self.layer.borderWidth = self.borderWidth;
     } else {
         [self setBackgroundColor:self.normalBackgroundColor];
-        [self.layer setBorderColor:self.normalBorderColor.CGColor];
+        if (self.normalBorderColor) {
+            [self.layer setBorderColor:self.normalBorderColor.CGColor];
+        }
+        self.layer.borderWidth = self.selectedBorderWidth;
     }
 }
-
 
 - (void)setNormalBackgroundColor:(UIColor *)normalBackgroundColor
 {
@@ -83,6 +88,9 @@
         
         _tagFont = [UIFont systemFontOfSize:12];
         _tagSelectedFont = [UIFont systemFontOfSize:12];
+        
+        _tagBorderWidth = 1.0f;
+        _tagSelectedBorderWidth = 1.0f;
         
         _lineSpacing = 10;
         _itemSpacing = 6;
@@ -154,14 +162,24 @@
     item.layer.cornerRadius = (self.cornerRadius != 0)?self.cornerRadius:28 / 2.f;
     item.layer.masksToBounds = YES;
     // 边框颜色
-    item.layer.borderWidth = 1;
+    item.layer.borderWidth = self.tagBorderWidth;
+    item.borderWidth = self.tagBorderWidth;
+    item.selectedBorderWidth = self.tagSelectedBorderWidth;
     item.normalBorderColor = self.tagBorderColor;
     item.selectedBorderColor = self.tagSelectedBorderColor;
     
     [item addTarget:self action:@selector(selectItem:) forControlEvents:UIControlEventTouchUpInside];
     
+    UILongPressGestureRecognizer *longPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressItem:)];
+    [item addGestureRecognizer:longPressGesture];
+    
     // 获取frame
-    item.contentEdgeInsets = UIEdgeInsetsMake(2, 9, 2, 9);
+    if (UIEdgeInsetsEqualToEdgeInsets(self.contentEdgeInsets, UIEdgeInsetsZero)) {
+        item.contentEdgeInsets = UIEdgeInsetsMake(2, 9, 2, 9);
+    }else {
+        item.contentEdgeInsets = self.contentEdgeInsets;
+    }
+    
     [item sizeToFit];
     item.titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
     item.frame = CGRectMake(frame.origin.x, frame.origin.y, item.frame.size.width, item.frame.size.height);
@@ -216,9 +234,17 @@
     [self updateTagViewLayout];
 }
 
+- (void)clearTags {
+    [self.scrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+}
+
 #pragma mark - 事件响应
 - (void)selectItem:(UIButton *)sender
 {
+    if (self.tagClick && [sender isKindOfClass:[TTTagItem class]]) {
+        self.tagClick((TTTagItem *)sender);
+    }
+    
     sender.selected = !sender.selected;
     //单选在这处理
     if (!self.allowsMultipleSelection) {
@@ -246,6 +272,12 @@
     }
     // 检测按钮状态，最少选中一个
     [self checkButtonState];
+}
+
+- (void)longPressItem:(UILongPressGestureRecognizer *)sender {
+    if (self.tagLongPress && [sender.view isKindOfClass:[TTTagItem class]]) {
+        self.tagLongPress((TTTagItem *)sender.view);
+    }
 }
 
 // 检测按钮状态，最少选中一个
@@ -299,10 +331,12 @@
 
 - (void)updateTagViewLayout
 {
-    
-    [UIView beginAnimations:nil context:nil];
-
     NSArray *items = self.scrollView.subviews;
+    
+    if (items.count > 0 && !self.disableUpdateTagViewLayoutAnimate) {
+        [UIView beginAnimations:nil context:nil];
+    }
+    
     if (items.count == 0) {
         // 没有设置内容，内容大小为零
         _contentSize = CGSizeZero;
@@ -314,6 +348,8 @@
     CGFloat itemH = 28;
     CGFloat itemX = self.itemSpacing;
     CGFloat itemY = self.lineSpacing;
+//    CGFloat itemX = 0;
+//    CGFloat itemY = 0;
     
     CGFloat marginX = self.itemSpacing;
     CGFloat marginY = self.lineSpacing;
@@ -398,7 +434,9 @@
         }
         
     }
-    [UIView commitAnimations];
+    if (!self.disableUpdateTagViewLayoutAnimate) {
+        [UIView commitAnimations];
+    }
 }
 
 #pragma mark - lazy load
@@ -422,13 +460,12 @@
         _pageControl.pageIndicatorTintColor = _pageIndicatorTintColor;
         _pageControl.currentPageIndicatorTintColor = _currentPageIndicatorTintColor;
         // 通过图片自定义
-//        if (@available(iOS 14.0, *)) {
-//            _pageControl.preferredIndicatorImage = _pageIndicatorImage;
-//        } else {
-//            // Fallback on earlier versions
-//        }
-////        [_pageControl setValue:_pageIndicatorImage forKeyPath:@"pageImage"];
-////        [_pageControl setValue:_currentPageIndicatorImage forKeyPath:@"currentPageImage"];
+        if (@available(iOS 14.0, *)) {
+            _pageControl.preferredIndicatorImage = _pageIndicatorImage;
+        } else {
+            [_pageControl setValue:_pageIndicatorImage forKeyPath:@"pageImage"];
+            [_pageControl setValue:_currentPageIndicatorImage forKeyPath:@"currentPageImage"];
+        }
     }
     return _pageControl;
 }

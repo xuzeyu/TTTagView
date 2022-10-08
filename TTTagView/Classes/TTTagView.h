@@ -21,6 +21,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (strong, nonatomic) UIColor *selectedBorderColor;
 
+@property (assign, nonatomic) CGFloat borderWidth;
+
+@property (assign, nonatomic) CGFloat selectedBorderWidth;
+
 @property(nonatomic,strong) id model;
 
 @end
@@ -28,6 +32,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - :::::::::::::: TTTagView ::::::::::::::
 @interface TTTagView : UIView
+
+#pragma mark - :::::::::::::: 事件响应 ::::::::::::::
+@property (nonatomic, strong) void(^tagClick)(TTTagItem *item); //item 点击
+@property (nonatomic, strong) void(^tagLongPress)(TTTagItem *item); //item 长按
 
 #pragma mark - :::::::::::::: 标签数据 ::::::::::::::
 
@@ -37,7 +45,7 @@ NS_ASSUME_NONNULL_BEGIN
   支持的数据类型可以是string类型的数组 如 @[@"测试文本",@"文本1",@"文本2",@"文本"];
   也可以是字典类型的数组  @[@{@"code":@"1",@"name":@"测试文本"},@{@"code":@"1",@"name":@"测试文本"}];
  */
-@property (nonatomic,retain) NSArray *tagsArray;
+@property (nonatomic,retain, nullable) NSArray *tagsArray;
 
 /**
  默认选中的数据
@@ -56,6 +64,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) CGFloat lineSpacing;
 // 元素之间的间距，默认为6
 @property (nonatomic) CGFloat itemSpacing;
+// 元素之间内边距
+@property (nonatomic) UIEdgeInsets contentEdgeInsets;
 
 #pragma mark - :::::::::::::: 标签样式属性 ::::::::::::::
 // 圆角
@@ -72,16 +82,22 @@ NS_ASSUME_NONNULL_BEGIN
 // 默认标签边线颜色
 @property (strong, nonatomic) UIColor *tagBorderColor;
 // 选中标签边线颜色
-@property (strong, nonatomic) UIColor *tagSelectedBorderColor;
+@property (strong, nonatomic, nullable) UIColor *tagSelectedBorderColor;
 // 默认标签字体
 @property (strong, nonatomic) UIFont *tagFont;
 // 选中标签字体
 @property (strong, nonatomic) UIFont *tagSelectedFont;
+// 默认标签边线宽度
+@property (assign, nonatomic) CGFloat tagBorderWidth;
+// 选中标签边线宽度
+@property (assign, nonatomic) CGFloat tagSelectedBorderWidth;
 // pageControl
 @property (strong, nonatomic) UIImage *pageIndicatorImage;
 @property (strong, nonatomic) UIImage *currentPageIndicatorImage;
 @property (strong, nonatomic) UIColor *pageIndicatorTintColor;
 @property (strong, nonatomic) UIColor *currentPageIndicatorTintColor;
+//动画
+@property (assign, nonatomic) BOOL disableUpdateTagViewLayoutAnimate;
 
 #pragma mark - :::::::::::::: 标签选中控制 ::::::::::::::
 // 默认是否选中状态
@@ -99,7 +115,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)removeTag:(id)model;
 
 - (void)addTags:(NSArray *)tags;
-
+- (void)clearTags;
 @end
 
 NS_ASSUME_NONNULL_END
